@@ -1330,8 +1330,12 @@ wl_alloc_linux_if(wl_if_t *wlif)
 	bzero(dev, sizeof(struct net_device));
 	ether_setup(dev);
 
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(7, 2, 0)
+	strscpy(dev->name, intf_name, IFNAMSIZ);
+#else
 	strncpy(dev->name, intf_name, IFNAMSIZ-1);
 	dev->name[IFNAMSIZ-1] = '\0';
+#endif
 
 	priv_link = MALLOC(wl->osh, sizeof(priv_link_t));
 	if (!priv_link) {
@@ -1548,8 +1552,12 @@ wl_get_driver_info(struct net_device *dev, struct ethtool_drvinfo *info)
 #endif
 	bzero(info, sizeof(struct ethtool_drvinfo));
 	snprintf(info->driver, sizeof(info->driver), "wl%d", wl->pub->unit);
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(7, 2, 0)
+	strscpy(info->version, EPI_VERSION_STR, sizeof(info->version));
+#else
 	strncpy(info->version, EPI_VERSION_STR, sizeof(info->version));
 	info->version[(sizeof(info->version))-1] = '\0';
+#endif
 }
 
 static int
@@ -3035,7 +3043,11 @@ _wl_add_monitor_if(wl_task_t *task)
 	}
 
 	ASSERT(strlen(wlif->name) > 0);
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(7, 2, 0)
+	memcpy(wlif->dev->name, wlif->name, strlen(wlif->name));
+#else
 	strncpy(wlif->dev->name, wlif->name, strlen(wlif->name));
+#endif
 
 	wl->monitor_dev = dev;
 	if (wl->monitor_type == 1)
