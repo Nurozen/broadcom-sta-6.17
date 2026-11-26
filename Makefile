@@ -179,8 +179,10 @@ MDEST_DIR          ?= $(KBASE)/kernel/drivers/net/wireless
 CROSS_TOOLS        = /path/to/tools
 CROSS_KBUILD_DIR   = /path/to/kernel/tree
 
+# Linux 7.0+: tolerate objtool errors from the prebuilt blob (see objtool-wrapper.sh)
 all:
-	KBUILD_NOPEDANTIC=1 make -C $(KBUILD_DIR) M=`pwd`
+	KBUILD_NOPEDANTIC=1 REAL_OBJTOOL=$(KBUILD_DIR)/tools/objtool/objtool \
+		make -C $(KBUILD_DIR) M=`pwd` objtool="/bin/sh `pwd`/objtool-wrapper.sh"
 
 cross:
 	KBUILD_NOPEDANTIC=1 make CROSS_COMPILE=${CROSS_TOOLS} -C $(CROSS_KBUILD_DIR) M=`pwd`
